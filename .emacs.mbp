@@ -1,0 +1,326 @@
+;;;; 24.3.1 on MBP
+
+;;; hints
+;;; /192.168.1.100:~/org/weights.org
+;;; /selkins@selkins-dl.datadomain.com:~/bugs/75122/75122.org
+;;;
+;;; M-x ruler-mode
+;;; M-x count-lines-region (M-=)
+;;; (setq org-src-fontify-natively t)
+;;; M-x list-packages
+;;; use C-M-f and C-M-b to match {}, etc.
+;;; use C-SPC C-SPC and C-u C-SPC to monkey with the mark
+;;; M-x ielm
+;;; M-! run a shell command and show output in echo area or *Shell Command Output* buffer
+;;; C-u M-! inserts output at point
+;;; M-x comment-region
+;;; M-x find-file-literally (to see ^M in file instead of (DOS) in the mode line)
+;;; use ^Q^M to specify carriage return to M-%
+;;;
+;;; M-x customize-themes
+;;; manoj-dark and tango-dark
+
+
+;;; evaluation
+;;; C-x C-e   eval    sexp (in file)
+;;; C-c C-e   eval    sexp (prompts in minibuffer)
+;;; C-M-x     compile sexp (in file)
+;;; C-c C-k   compile file
+;;; C-j       eval    sexp (in file, esp. *scratch*)
+
+;;; http://www.masteringemacs.org/articles/2011/10/02/improving-performance-emacs-display-engine/
+;;; (setq redisplay-dont-pause t)
+
+;;; when browsing emacs info doc inside emacs, you can get the node's
+;;; name by calling “Info-copy-current-node-name” with key [c] (sge: that's just 'c' in info-mode).
+
+;;; (info "(emacs) Keyboard Macro Ring")
+;;; (info "(emacs) Regexp Replace")
+
+;;; learning elisp
+;;;   http://irreal.org/blog/?p=674
+;;;   http://www.emacswiki.org/emacs/CategoryCode
+;;;   http://xahlee.org/emacs/elisp.html
+;;;   http://www.gnu.org/software/emacs/manual/html_node/elisp/index.html
+
+;;
+;; http://ergoemacs.org/emacs/organize_your_dot_emacs.html (Xah Lee)
+;; seems a little flakey, i.e., sometimes byte-compile-dest-file seems hard to find
+;;
+;; (defun byte-compile-current-buffer ()
+;;   "`byte-compile' current buffer if it's emacs-lisp-mode and compiled file exists."
+;;   (interactive)
+;;   (when (and (eq major-mode 'emacs-lisp-mode)
+;;              (file-exists-p (byte-compile-dest-file buffer-file-name)))
+;;     (byte-compile-file buffer-file-name)))
+;;
+;; (add-hook 'after-save-hook 'byte-compile-current-buffer)
+;;
+;; M-x customize-themes (manoj-dark)
+;; M-x customize-themes (tango)
+
+;;
+;; ELPA    M-x list-packages
+;;
+
+(package-initialize)
+
+;; (require 'org-install)
+;;
+;; from the 20121126 package
+;;
+;; Warning (emacs): The file org-install is obsolete.
+;; It is provided here so that (require 'org-install) does not
+;; trigger an error for users with obsolete Emacs configuration.
+;; You can safely remove (require 'org-install) from your config.
+
+(add-to-list 'auto-mode-alist '("\\.org\\'" . org-mode))
+(global-set-key "\C-cl" 'org-store-link)
+(global-set-key "\C-cc" 'org-capture)
+(global-set-key "\C-ca" 'org-agenda)
+(global-set-key "\C-cb" 'org-iswitchb)
+(setq org-log-done t)
+
+(setq org-agenda-files (list "~/Documents/org/bugs.org"
+			     "~/Documents/org/emc-bs.org"
+			     "~/Documents/org/i6k.org"
+			     ; "~/Documents/org/meetings.org"
+			     "~/Documents/org/scsi-replay.org"
+			     "~/Documents/org/todo.org"
+			     "~/Documents/org/vtl-options.org"))
+(setq org-capture-templates
+      '(("t" "Todo" entry (file+headline "~/Documents/org/todo.org" "Tasks")
+	 "* TODO %?\n  %i\n  %a")
+        ("j" "Journal" entry (file+datetree "~/Documents/org/journal.org")
+	 "* %?\nEntered on %U\n  %i\n  %a")
+	("b" "Bug" entry (file+headline "~/Documents/org/bugs.org" "Bugs")
+	 "\n\n** %? %^g\n%U\n\n%i %a")))
+
+(require 'vlf)
+(require 'undo-tree)
+
+;; local stuff
+(add-to-list 'load-path "/Users/elkins1/.emacs.local")
+
+;; straight from http://www.emacswiki.org/emacs/buffer-extension.el
+;; found it looking for a way to copy the current buffer's path to the
+;; kill ring, copy-buffer-file-name-as-kill does the job.
+(require 'buffer-extension)
+
+;; markdown
+(require 'markdown-mode)
+
+;;
+;; sge functions and aliases begin
+;;
+
+(defun sge-find-file-options (path-to-file)
+  "Use TRAMP to open a file on selkins-dl."
+  (interactive "sFile in selkins-dl:~/p4/vtlopt3a/ ")
+  (let ((full-path (concat "/selkins@selkins-dl.datadomain.com:~/p4/vtlopt3a/" path-to-file)))
+    (find-file full-path)))
+
+(defalias 'sffo 'sge-find-file-options)
+
+(defun sge-find-file-linux (path-to-file)
+  "Use TRAMP to open a file on selkins-dl."
+  (interactive "sFile on selkins-dl: ")
+  (let ((full-path (concat "/selkins@selkins-dl.datadomain.com:" path-to-file)))
+    (find-file full-path)))
+
+(defalias 'sffl 'sge-find-file-linux)
+
+(defun sge-find-file-linux-tips ()
+  "Use TRAMP to open tips.org on selkins-dl."
+  (interactive)
+  (find-file "/selkins@selkins-dl.datadomain.com:~/org/tips.org"))
+
+(defun sge-find-file-morgan (path-to-file)
+  "Use TRAMP to open a file on morgan."
+  (interactive "sFile on morgan: ")
+  (let ((full-path (concat "/selkins@morgan.datadomain.com:" path-to-file)))
+    (find-file full-path)))
+
+(defalias 'sffm 'sge-find-file-morgan)
+
+(defun sge-find-file-morgan-dumpinfo ()
+  "Use TRAMP to open dumpinfo.org on morgan."
+  (interactive)
+  (find-file "/selkins@morgan.datadomain.com:~/public_html/dumpinfo.org"))
+
+(defun sge-find-file-morgan-vtlopt ()
+  "Use TRAMP to open dumpinfo.org on morgan."
+  (interactive)
+  (find-file "/selkins@morgan.datadomain.com:~/public_html/vtlopt.org"))
+
+(defalias 'sge-vtlopt 'sge-find-file-morgan-vtlopt)
+
+(defun sge-start-bug (bug-number)
+  "Open a file for a bug, creating its directory if need be."
+  (interactive "sBug: ")
+  (let ((dir-name (concat "~/Documents/ddup/bugs/" bug-number)))
+    (unless (file-exists-p dir-name)
+      (make-directory dir-name))
+    (find-file (concat dir-name "/" bug-number ".org"))))
+
+(defalias 'ssb 'sge-start-bug)
+
+;; C-h v show-trailing-whitespace
+(defalias 'dtw 'delete-trailing-whitespace)
+
+;;
+;; sge functions and aliases end
+;;
+
+;;;
+;;; WTE!? begins
+;;;
+
+;; http://whattheemacsd.com//editing-defuns.el-01.html
+;; added sge prefixes
+(defun sge/open-line-below ()
+  (interactive)
+  (if (eolp)
+      (newline)
+    (end-of-line)
+    (newline))
+  (indent-for-tab-command))
+
+(defun sge/open-line-above ()
+  (interactive)
+  (beginning-of-line)
+  (newline)
+  (forward-line -1)
+  (indent-for-tab-command))
+
+(global-set-key (kbd "<C-return>") 'sge/open-line-below)
+(global-set-key (kbd "<C-S-return>") 'sge/open-line-above)
+
+;;;
+;;; WTE!? ends
+;;;
+
+;; launchd.conf seems to be deprecated
+;;
+;; 2012-08-30 echo $PATH
+;; /usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:/usr/X11/bin:/Users/elkins1/bin
+;;
+;; http://rforge.org/2011/08/16/sane-path-variable-in-emacs-on-mac-os-x/
+;;
+;; 
+(setenv "PATH" "/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:/usr/X11/bin:/Users/elkins1/bin")
+
+;; from http://stackoverflow.com/questions/2266905/emacs-is-ignoring-my-path-when-it-runs-a-compile-command
+;; this would be cool if path-from-shell weren't only /usr/bin:/bin:/usr/sbin:/sbin
+(defun set-exec-path-from-shell-PATH ()
+  (let ((path-from-shell (shell-command-to-string "$SHELL -i -c 'echo $PATH'")))
+    (setenv "PATH" path-from-shell)
+    (setq exec-path (split-string path-from-shell path-separator))))
+
+;; (setq uniquify-buffer-name-style 'reverse)
+
+;;;
+;;; slime+ccl
+;;;
+
+;; this line from the clozure wiki
+(set-language-environment "utf-8")
+;; these lines are from quicklisp (changed inferior lisp prog from sbcl)
+(load (expand-file-name "~/quicklisp/slime-helper.el"))
+(setq inferior-lisp-program "/Users/elkins1/Documents/ccl/scripts/ccl64 -K utf-8")
+;; from imac .emacs
+(setq slime-net-coding-system 'utf-8-unix)
+(global-set-key "\C-cs" 'slime-selector)
+(require 'slime-autoloads)
+(slime-setup '(slime-fancy))
+
+;;;
+;;; cperl
+;;;
+
+(defalias 'perl-mode 'cperl-mode)
+(add-hook 'cperl-mode-hook (lambda ()
+                             (setq cperl-indent-level 4)
+                             (setq indent-tabs-mode nil)))
+
+;;;
+;;;   ibuffer
+;;;
+
+;; many links @ http://www.rlazo.org/2010/11/13/ibuffer-reference/
+
+(global-set-key (kbd "C-x C-b") 'ibuffer)
+(require 'ibuffer)
+
+;;;
+;;;   lua
+;;;
+
+(autoload 'lua-mode "lua-mode" "Lua editing mode." t)
+(add-to-list 'auto-mode-alist '("\\.lua$" . lua-mode))
+(add-to-list 'interpreter-mode-alist '("lua" . lua-mode))
+(add-hook 'lua-mode-hook (lambda ()
+			   (setq indent-tabs-mode nil)))
+
+;;;
+;;;   which-func
+;;;
+
+(require 'which-func)
+(add-to-list 'which-func-modes 'org-mode)
+(which-func-mode 1)
+
+;;;
+;;;    hyperspec
+;;;
+
+(require 'hyperspec)
+(setq common-lisp-hyperspec-root "file:/Users/elkins1/Documents/hyperspec/HyperSpec/")
+
+;;;
+;;;    http://emacsredux.com/blog/2013/08/26/search-youtube/
+;;;
+(defun youtube ()
+  "Search YouTube with a query or region if any."
+  (interactive)
+  (browse-url
+   (concat
+    "http://www.youtube.com/results?search_query="
+    (url-hexify-string (if mark-active
+                           (buffer-substring (region-beginning) (region-end))
+                         (read-string "Search YouTube: "))))))
+
+;;;
+;;;    http://emacsredux.com/blog/2013/03/28/google/
+;;;
+(defun google ()
+  "Google the selected region if any, display a query prompt otherwise."
+  (interactive)
+  (browse-url
+   (concat
+    "http://www.google.com/search?ie=utf-8&oe=utf-8&q="
+    (url-hexify-string (if mark-active
+			   (buffer-substring (region-beginning) (region-end))
+			 (read-string "Google: "))))))
+
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(blink-cursor-mode nil)
+ '(comint-prompt-read-only t)
+ '(custom-enabled-themes (quote (tango)))
+ '(send-mail-function (quote smtpmail-send-it))
+ '(show-paren-mode t)
+ '(smtpmail-smtp-server "smtp.datadomain.com")
+ '(smtpmail-smtp-service 25)
+ '(tool-bar-mode nil)
+ '(tooltip-mode nil)
+ '(uniquify-buffer-name-style (quote forward) nil (uniquify)))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
