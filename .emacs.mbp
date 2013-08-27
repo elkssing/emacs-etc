@@ -42,6 +42,9 @@
 ;;;   http://www.emacswiki.org/emacs/CategoryCode
 ;;;   http://xahlee.org/emacs/elisp.html
 ;;;   http://www.gnu.org/software/emacs/manual/html_node/elisp/index.html
+;;;   M-x describe-function
+;;;       interactive concat file-exists-p make-directory find-file
+;;;   M-x describe-variable
 
 ;;
 ;; http://ergoemacs.org/emacs/organize_your_dot_emacs.html (Xah Lee)
@@ -207,7 +210,7 @@
 ;;
 ;; http://rforge.org/2011/08/16/sane-path-variable-in-emacs-on-mac-os-x/
 ;;
-;; 
+;;
 (setenv "PATH" "/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:/usr/X11/bin:/Users/elkins1/bin")
 
 ;; from http://stackoverflow.com/questions/2266905/emacs-is-ignoring-my-path-when-it-runs-a-compile-command
@@ -277,6 +280,34 @@
 (require 'hyperspec)
 (setq common-lisp-hyperspec-root "file:/Users/elkins1/Documents/hyperspec/HyperSpec/")
 
+;; http://emacsredux.com/blog/2013/05/22/smarter-navigation-to-the-beginning-of-a-line/
+(defun smarter-move-beginning-of-line (arg)
+  "Move point back to indentation of beginning of line.
+
+Move point to the first non-whitespace character on this line.
+If point is already there, move to the beginning of the line.
+Effectively toggle between the first non-whitespace character and
+the beginning of the line.
+
+If ARG is not nil or 1, move forward ARG - 1 lines first.  If
+point reaches the beginning or end of the buffer, stop there."
+  (interactive "^p")
+  (setq arg (or arg 1))
+
+  ;; Move lines first
+  (when (/= arg 1)
+    (let ((line-move-visual nil))
+      (forward-line (1- arg))))
+
+  (let ((orig-point (point)))
+    (back-to-indentation)
+    (when (= orig-point (point))
+      (move-beginning-of-line 1))))
+
+;; remap C-a to `smarter-move-beginning-of-line'
+(global-set-key [remap move-beginning-of-line]
+                'smarter-move-beginning-of-line)
+
 ;;;
 ;;;    http://emacsredux.com/blog/2013/08/26/search-youtube/
 ;;;
@@ -302,6 +333,26 @@
     (url-hexify-string (if mark-active
 			   (buffer-substring (region-beginning) (region-end))
 			 (read-string "Google: "))))))
+
+;;;
+;;;     window management
+;;;
+
+;; http://www.emacswiki.org/emacs/WinnerMode
+;; C-c <left> and C-c <right> are undo and redo
+(when (fboundp 'winner-mode)
+  (winner-mode 1))
+
+(require 'windmove)
+(setq windmove-wrap-around t)
+(windmove-default-keybindings 'meta) ; doesn't work in emacsclient -t
+
+;; none of the other ways I've found of using alt as a modifier work,
+;; but this is better than C-x o in case of emacsclient -t
+;; (global-set-key (kbd "C-x <left>")  'windmove-left)
+;; (global-set-key (kbd "C-x <right>") 'windmove-right)
+;; (global-set-key (kbd "C-x <up>")    'windmove-up)
+;; (global-set-key (kbd "C-x <down>")  'windmove-down)
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
